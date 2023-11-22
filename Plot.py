@@ -3,14 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 
-FileNames = glob.glob("fort.*")
-
-XPlot = np.linspace(2000,10000,100)
-YPlot = 1e-11*XPlot**3
+FileNames = np.array(glob.glob("RunResults/fort.*"))
+FileArrangeIndex = np.array([int(FileItem.split(".")[-1]) for FileItem in FileNames])
+FileNames = FileNames[np.argsort(FileArrangeIndex)]
+XPlot = np.linspace(1000,15000,100)
+YPlot = 1e-10*XPlot**3
 plt.figure(figsize=(12,8))
 for FileCounter,FileItem in enumerate(FileNames):
     Data = np.loadtxt(FileItem)
-    NCores = int(FileItem.split(".")[1])
+    NCores = int(FileItem.split(".")[-1])
     print("The shape of data is:", NCores)
 
     if FileCounter==0:
@@ -26,19 +27,19 @@ for FileCounter,FileItem in enumerate(FileNames):
         LW= (0,(1,10))
         LW= (5,(10,3))
     
-    plt.plot(Data[:,0], Data[:,1], marker="+", markersize=5, color="red", linestyle=LW, label=str(NCores)+" dgetri ")
+    plt.plot(Data[:,0], Data[:,1]*NCores, marker="+", markersize=5, color="red", linestyle=LW, label=str(NCores)+" dgetri ")
 
-    #plt.plot(Data[:,0], Data[:,2]/NCores, color="blue", linestyle=LW, label=str(NCores)+" MatInvNew ")
-    plt.plot(Data[:,0], Data[:,3], marker="d", markersize=5, color="green", linestyle=LW, label=str(NCores)+" MatInv ")
-    #plt.plot(Data[:,0], Data[:,4]/NCores, color="brown", linestyle=LW, label=str(NCores)+" dsytrf")
+    plt.plot(Data[:,0], Data[:,2]*NCores, color="blue", linestyle=LW, label=str(NCores)+" MatInv ")
+    plt.plot(Data[:,0], Data[:,3]*NCores, marker="d", markersize=5, color="green", linestyle=LW, label=str(NCores)+" dsystri ")
+    plt.plot(Data[:,0], Data[:,4]*NCores, color="brown", linestyle=LW, label=str(NCores)+" Cholesky")
 
-plt.plot(XPlot, YPlot, "k-", lw=4, alpha=0.5)
+#plt.plot(XPlot, YPlot, "k-", lw=4, alpha=0.5, label="x=y^3 graph")
 plt.xlabel("Matrix Dimension")
-plt.ylabel("Time Taken")
-plt.legend(ncols=2)
+plt.ylabel("Total Time Taken x Number of Cores")
+plt.legend(ncol=4)
+#plt.legend(ncols=2)
 plt.xscale('log')
-#plt.yscale('log')
+plt.yscale('log')
 plt.grid(True)
-plt.show()
-
-input("We will wait here...")
+plt.savefig("PerformanceGraph.png")
+plt.close()

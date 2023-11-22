@@ -14,11 +14,17 @@ program random_large_matrix
     !real(kind=dp),allocatable,dimension(:)::WORK
     real(8),allocatable,dimension(:)::WORK
     character(len=2) :: ValuePassed
+    integer::ierr, ValuePassedInt
 
     ! Read the integer from the command-line argument
     call get_command_argument(1, value=ValuePassed)
+    
+    
     write(*,*) "This works.", ValuePassed
-    do n = 1000,10000,500
+    read(ValuePassed, *, iostat=ierr) ValuePassedInt
+    
+    
+    do n = 1000,15000,500
         LWORK=64*n
        
 
@@ -42,19 +48,15 @@ program random_large_matrix
 
         !$OMP END PARALLEL DO
         StopTime1 = OMP_GET_WTIME()
-        write(*,'(A,F7.4)') "The elapsed time is:", StopTime1 - StartTime1
+        write(*,'(A,F7.4)') "Initialization time: ", StopTime1 - StartTime1
 
         StartTime1 = OMP_GET_WTIME()
-        !call dgetrf(n,n,matrix,n,isuppz,info)
+        call dgetrf(n,n,matrix,n,isuppz,info)
+        call dgetri(n,matrix,n,isuppz,work,lwork,info)
         StopTime1 = OMP_GET_WTIME()
         TimeTaken1 = StopTime1-StartTime1
 
-        StartTime2 = OMP_GET_WTIME()
-        !call dgetri(n,matrix,n,isuppz,work,lwork,info)
-        StopTime2 = OMP_GET_WTIME()
-        TimeTaken2 = StopTime2-StartTime2
-
-        write(*,'(A,I5,A,3F6.3)') "Method dgetrf", n," is: ", TimeTaken1, TimeTaken2, TimeTaken1+TimeTaken2
+        write(*,'(A,I6,A,3F6.3)') "Method dgetrf", n," is: ", TimeTaken1
 
         !StartTime1 = OMP_GET_WTIME()
         !call matinvNew(matrix, n)
@@ -66,40 +68,45 @@ program random_large_matrix
         StartTime1 = OMP_GET_WTIME()
         call matinv(matrix, n)
         StopTime1 = OMP_GET_WTIME()
-        TimeTaken1 = StopTime1-StartTime1
-        write(*,'(A,I5,A,F7.4,F6.3)') "Method 1", n," is: ",TimeTaken1
+        TimeTaken2 = StopTime1-StartTime1
+        write(*,'(A,I5,A,F7.4,F6.3)') "MatInv", n," is: ",TimeTaken2
 
         
        
 
-        StartTime1 = OMP_GET_WTIME()
-        call mkl_dgetrfnp('U',n,matrix,n,isuppz,work,lwork,info)
-        StopTime1 = OMP_GET_WTIME()
-        TimeTaken1 = StopTime1 - StartTime1
+        !!iStartTime1 = OMP_GET_WTIME()
+        !!call mkl_dgetrfnp('U',n,matrix,n,isuppz,work,lwork,info)
+        !!StopTime1 = OMP_GET_WTIME()
+        !!TimeTaken1 = StopTime1 - StartTime1
 
-        StartTime2 = OMP_GET_WTIME()    
-        call dsytri('U',n,matrix,n,isuppz,work,info)
-        StopTime2 = OMP_GET_WTIME() 
-        TimeTaken2 = StopTime2 - StartTime2
+        !!StartTime2 = OMP_GET_WTIME()    
+        !!call dsytri('U',n,matrix,n,isuppz,work,info)
+        !!StopTime2 = OMP_GET_WTIME() 
+        !!TimeTaken2 = StopTime2 - StartTime2
 
-        write(*,'(A,I5,A,F6.3,3F6.3)') "Method dsytrf", n," is: ", TimeTaken1, TimeTaken2, TimeTaken1+TimeTaken2
+        !!write(*,'(A,I5,A,F6.3,3F6.3)') "Method dsytrf", n," is: ", TimeTaken1, TimeTaken2, TimeTaken1+TimeTaken2
 
 
         StartTime1 = OMP_GET_WTIME()
         call dsytrf('U',n,matrix,n,isuppz,work,lwork,info)
-        StopTime1 = OMP_GET_WTIME()
-        TimeTaken1 = StopTime1 - StartTime1
-
-        StartTime2 = OMP_GET_WTIME()    
         call dsytri('U',n,matrix,n,isuppz,work,info)
-        StopTime2 = OMP_GET_WTIME() 
-        TimeTaken2 = StopTime2 - StartTime2
+        StopTime1 = OMP_GET_WTIME()
+        TimeTaken3 = StopTime1 - StartTime1
+        write(*,*), "For dsystr? ", TimeTaken3
 
-        write(*,'(A,I5,A,F6.3,3F6.3)') "Method dsytrf", n," is: ", TimeTaken1, TimeTaken2, TimeTaken1+TimeTaken2
+        StartTime1 = OMP_GET_WTIME()
+        write(*,*), "Performing Cholesky Decomposition"
+        call dpotrf('U', n, matrix, n, info)
+        call dpotri('U', n, matrix, n, info)
+        StopTime1 = OMP_GET_WTIME()
+        TimeTaken4 = StopTime1-StartTime1
+
+        write(*,*), "Time taken in Cholesky Decomposition n:",n," --", StopTime1-StartTime1
+        write(*,'(I6,A,4F7.4)')  n, "     :",  TimeTaken1, TimeTaken2, TimeTaken3, TimeTaken4
 
 
 
-        write(ValuePassed,'(I5,4F6.3)')  n, TimeTaken1, TimeTaken2, TimeTaken3, TimeTaken4
+        write(ValuePassedInt,'(I6,4F15.6)')  n, TimeTaken1, TimeTaken2, TimeTaken3, TimeTaken4
         
         
 
