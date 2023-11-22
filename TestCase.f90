@@ -13,7 +13,11 @@ program random_large_matrix
     integer::INFO,LWORK,LIWORK
     !real(kind=dp),allocatable,dimension(:)::WORK
     real(8),allocatable,dimension(:)::WORK
+    character(len=2) :: ValuePassed
 
+    ! Read the integer from the command-line argument
+    call get_command_argument(1, value=ValuePassed)
+    write(*,*) "This works.", ValuePassed
     do n = 1000,10000,500
         LWORK=64*n
        
@@ -35,17 +39,18 @@ program random_large_matrix
                 matrix(i,j) = matrix(j,i)
             end do
         end do
+
         !$OMP END PARALLEL DO
         StopTime1 = OMP_GET_WTIME()
         write(*,'(A,F7.4)') "The elapsed time is:", StopTime1 - StartTime1
 
         StartTime1 = OMP_GET_WTIME()
-        call dgetrf(n,n,matrix,n,isuppz,info)
+        !call dgetrf(n,n,matrix,n,isuppz,info)
         StopTime1 = OMP_GET_WTIME()
         TimeTaken1 = StopTime1-StartTime1
 
         StartTime2 = OMP_GET_WTIME()
-        call dgetri(n,matrix,n,isuppz,work,lwork,info)
+        !call dgetri(n,matrix,n,isuppz,work,lwork,info)
         StopTime2 = OMP_GET_WTIME()
         TimeTaken2 = StopTime2-StartTime2
 
@@ -94,7 +99,7 @@ program random_large_matrix
 
 
 
-        write(24,'(I5,4F6.3)')  n, TimeTaken1, TimeTaken2, TimeTaken3, TimeTaken4
+        write(ValuePassed,'(I5,4F6.3)')  n, TimeTaken1, TimeTaken2, TimeTaken3, TimeTaken4
         
         
 
