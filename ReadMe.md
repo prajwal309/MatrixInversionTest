@@ -1,7 +1,7 @@
 # Motivation
 This program is an attempt to see how different matrix inversion algorithm perform. The four algorithms that are tested are:
     1. dgetrf/dgetri
-    2. MatInv: ALgorith https://ieeexplore.ieee.org/document/7300068
+    2. MatInv: Algorithm from https://ieeexplore.ieee.org/document/7300068
     3. dsytrf/dsytri
     4. Cholesky Decomposition: dpotrf/dpotri
 
